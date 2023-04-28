@@ -1,4 +1,4 @@
-H=
-C=
-S=
+H=SHA-256
+C=c129db8be8904b40ac21c9cf5d9f5c0e24ef455d1d7a7bbfd7049fc6dc9d2429
+S=zz
 ThreadNumber=1
