@@ -12,8 +12,6 @@ public class App {
 
     public static void main(String[] args) {
 
-        long startTime = System.currentTimeMillis();
-
         Scanner mode = new Scanner(System.in);
 
         HashMap<String, String> parameters = readFile();
@@ -21,7 +19,8 @@ public class App {
         String code = parameters.get("Code");
         String sal = parameters.get("SAL");
         int threadNumber = Integer.parseInt(parameters.get("ThreadNumber"));
-
+        
+        long startTime = System.currentTimeMillis();
         Decypher decypher = new Decypher(hashAlgorithm, code, sal);
         
         findString(decypher, threadNumber);
