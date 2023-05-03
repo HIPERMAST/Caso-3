@@ -3,9 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Scanner;
 
 
@@ -13,6 +11,8 @@ import java.util.Scanner;
 public class App {
 
     public static void main(String[] args) {
+
+        long startTime = System.currentTimeMillis();
 
         Scanner mode = new Scanner(System.in);
 
@@ -22,17 +22,19 @@ public class App {
         String sal = parameters.get("SAL");
         int threadNumber = Integer.parseInt(parameters.get("ThreadNumber"));
 
-        saveString(hashAlgorithm, code, sal, threadNumber);
+        Decypher decypher = new Decypher(hashAlgorithm, code, sal);
+        
+        findString(decypher, threadNumber);
 
         mode.close();
+
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Tiempo total de ejecución: " + totalTime + " milisegundos");
     }
 
 
-    public static void saveString(String hashAlgorithm, String code, String sal, int threadNumber) {
-
-        Decypher decypher = new Decypher(hashAlgorithm, code, sal);
-        
-        String originalString = findString(decypher, threadNumber);
+    public static void saveString(String originalString, int threadNumber) {
         
         String fileRoot = "./strings/"+ threadNumber +".txt";
 
@@ -48,93 +50,74 @@ public class App {
     }
 
 
-    public static String findString( Decypher decypher,int threadNumber) {
+    public static void findString( Decypher decypher,int threadNumber) {
 
         String originalString = "";
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> result1 = new ArrayList<String>();
+        ArrayList<String> result2 = new ArrayList<String>();
+        
+        result1.add(originalString);
+        result1.add("0");
+        result2.add(originalString);
+        result2.add("0");
 
-        result.add(originalString);
-        result.add("0");
 
         if (threadNumber == 1){
-            int i = 0;
+            // Crear un hilo
+            Thread t1 = new Searcher("Thread 1", decypher, result1, 0, threadNumber);
 
-            while (i < 7 && result.get(1) != "1") {
+            // Iniciar el hilo
+            t1.start();
 
-                char[] arr = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-                result = combinationsWithRepetition(arr, i+1, decypher, result);
-
-                i++;
+            // Verificar si el resultado fue encontrado por el hilo 1
+            try {
+                t1.join();
+            } catch (InterruptedException e) {
+                System.out.println("Ocurrió un error al esperar el hilo: " + e.getMessage());
             }
-            if (result.get(1) == "1") {
-                return originalString = result.get(0);
+
+            if (result1.get(1) == "1") {
+                originalString = result1.get(0);
+                saveString(originalString, threadNumber);
             }
 
         }
-        else{
-            // if (Thread.getId() == 1){
-            //     int i = 0;
-
-            //     while (i < 7 && result.get(1) != "1") {
-    
-            //         char[] arr = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-            //         result = combinationsWithRepetition(arr, i+1, decypher, result);
-    
-            //         i+=2;
-            //     }
-            //     if (result.get(1) == "1") {
-            //         return originalString = result.get(0);
-            //     }
-            // }
-            // else {
-            //     int i = 1;
-
-            //     while (i < 7 && result.get(1) != "1") {
-    
-            //         char[] arr = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'};
-            //         result = combinationsWithRepetition(arr, i+1, decypher, result);
-    
-            //         i+=2;
-            //     }
-            //     if (result.get(1) == "1") {
-            //         return originalString = result.get(0);
-            //     }
-            // }
-        }
+        else if (threadNumber == 2) {
+            // Crear dos hilos
+            Thread t1 = new Searcher("Thread 1", decypher, result1, 0, threadNumber);
+            Thread t2 = new Searcher("Thread 2", decypher, result2, 1, threadNumber);
         
+            // Iniciar los hilos
+            t1.start();
+            t2.start();
 
-        return ("No se encontro la cadena.");
-    }
+            // Esperar a que los hilos terminen
+            try {
+                t1.join();
+                t2.join();
+            } catch (InterruptedException e) {
+                System.out.println("Ocurrió un error al esperar los hilo: " + e.getMessage());
+            }            
+        
+            // Verificar si el resultado fue encontrado por el hilo 1
+            if (result1.get(1) == "1") {
+                originalString = result1.get(0);
+                saveString(originalString, threadNumber);
+            }
 
-    public static ArrayList<String> combinationsWithRepetition(char[] arr, int len, Decypher decypher, ArrayList<String> result) {
-        int[] indices = new int[len];
-        Arrays.fill(indices, 0);
-        while (indices[0] < arr.length && result.get(1) != "1") {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < len; i++) {
-                sb.append(arr[indices[i]]);
+            // Verificar si el resultado fue encontrado por el hilo 2
+            else if (result2.get(1) == "1") {
+                originalString = result2.get(0);
+                saveString(originalString, threadNumber);
             }
-            result.set(0, sb.toString());
-            result = decypher.getString(result);
-
-            int k = len - 1;
-            while (k >= 0 && indices[k] == arr.length - 1 && result.get(1) != "1") {
-                k--;
-            }
-            if (k < 0) {
-                break;
-            }
-            indices[k]++;
-            for (int i = k + 1; i < len && result.get(1) != "1"; i++) {
-                indices[i] = 0;
-            }
+            else
+                saveString("No se encontro la cadena", threadNumber);
         }
-
-        return result;
-    }
+}
 
 
-    
+
+
 
     public static HashMap<String, String> readFile() {
 

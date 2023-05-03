@@ -2,12 +2,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.List;
 public class Decypher {
 
-    private static String hashAlgorithm;
-    private static String code;
-    private static String sal;
+    private String hashAlgorithm;
+    private String code;
+    private String sal;
 
     public Decypher(String hashAlgorithm, String code, String sal) {
         this.hashAlgorithm = hashAlgorithm;
@@ -36,7 +35,7 @@ public class Decypher {
 
         result.set(0, originalString);
 
-        if (hashedString.equals(code)) {
+        if (hashedString.equals(code.toLowerCase())) {
             System.out.println("La cadena es: " + originalString);
             result.set(1, "1");
             return result;
